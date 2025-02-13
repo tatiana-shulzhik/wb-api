@@ -25,7 +25,7 @@ module.exports = {
         type: Sequelize.STRING
       },
       boxStorageLiter: {
-        type: Sequelize.DECIMAL
+        type: Sequelize.STRING
       },
       createdAt: {
         allowNull: false,

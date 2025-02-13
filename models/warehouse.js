@@ -20,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
     boxDeliveryBase: DataTypes.STRING,
     boxDeliveryLiter: DataTypes.STRING,
     boxStorageBase: DataTypes.STRING,
-    boxStorageLiter: DataTypes.DECIMAL
+    boxStorageLiter: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'Warehouse',

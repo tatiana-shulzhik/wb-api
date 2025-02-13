@@ -1,6 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const { sequelize } = require('./src/config/config');
+const { sequelize } = require('./config/config');
 
 dotenv.config();
 
