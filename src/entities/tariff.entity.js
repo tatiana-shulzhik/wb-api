@@ -32,5 +32,10 @@ module.exports = (sequelize) => {
     }
   );
 
+  Tariff.belongsTo(sequelize.models.Warehouse, {
+    foreignKey: "warehouseId",
+    as: "warehouse",
+  });
+
   return Tariff;
 };

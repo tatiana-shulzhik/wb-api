@@ -3,6 +3,7 @@ const axios = require("axios");
 const { sequelize } = require("../config/config");
 const Warehouse = require("../entities/warehouse.entity")(sequelize);
 const Tariff = require("../entities/tariff.entity")(sequelize);
+const { uploadDataToGoogleSheets } = require("./google-sheets-upload");
 
 async function getWBDataByHour() {
   try {
@@ -45,13 +46,16 @@ async function getWBDataByHour() {
           await existingTariff.update({ dtNextBox, dtTillMax, createdAt: formattedDate }, { transaction });
         } else {
           await Tariff.create(
-          { warehouseId: currentWarehouse.id, dtNextBox, dtTillMax, createdAt: formattedDate },
-          { transaction }
-        );
+            { warehouseId: currentWarehouse.id, dtNextBox, dtTillMax, createdAt: formattedDate },
+            { transaction }
+          );
         }
       }
     });
     console.log("Данные успешно обновлены");
+
+    const spreadsheetIds = process.env.SPREADSHEET_IDS.split(",");;
+    await uploadDataToGoogleSheets(spreadsheetIds);
   } catch (error) {
     console.error("Ошибка при получении данных Wildberries:", error.message);
   }
