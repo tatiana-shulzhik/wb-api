@@ -41,7 +41,7 @@ async function uploadDataToGoogleSheets(spreadsheetIds) {
       row["warehouse.boxStorageLiter"],
       row.dtNextBox,
       row.dtTillMax,
-    ]);
+    ]).sort((a, b) => a[1] - b[1]);
 
     const service = getGoogleSheetsService();
     const sheetTitle = "stocks_coefs";
