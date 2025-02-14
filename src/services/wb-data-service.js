@@ -36,10 +36,19 @@ async function getWBDataByHour() {
           transaction,
         });
 
-        await Tariff.upsert(
+        const existingTariff = await Tariff.findOne({
+          where: { warehouseId: currentWarehouse.id },
+          transaction,
+        });
+
+        if (existingTariff) {
+          await existingTariff.update({ dtNextBox, dtTillMax, createdAt: formattedDate }, { transaction });
+        } else {
+          await Tariff.create(
           { warehouseId: currentWarehouse.id, dtNextBox, dtTillMax, createdAt: formattedDate },
           { transaction }
         );
+        }
       }
     });
     console.log("Данные успешно обновлены");
