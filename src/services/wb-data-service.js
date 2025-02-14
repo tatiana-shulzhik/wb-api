@@ -16,23 +16,32 @@ async function getWBDataByHour() {
     );
 
     const responseData = data?.response?.data;
-    if (!responseData) throw new Error("Некорректный ответ от API Wildberries");
+
+    if (!responseData || !responseData.warehouseList?.length) {
+      throw new Error("Некорректный ответ от API Wildberries или пустой warehouseList");
+    }
 
     const { warehouseList, dtNextBox, dtTillMax } = responseData;
-    if (!warehouseList?.length) throw new Error("Пустой список складов");
 
-    await sequelize.transaction(async (t) => {
-      const createdWarehouses = await Warehouse.bulkCreate(warehouseList, { transaction: t });
+    await sequelize.transaction(async (transaction) => {
+      for (const warehouse of warehouseList) {
+        if (!warehouse.warehouseName) {
+          console.warn("Warning: warehouseName is missing for warehouse:", warehouse);
+          continue;
+        }
 
-      const tariffData = createdWarehouses.map(({ id }) => ({
-        dtNextBox,
-        dtTillMax,
-        warehouseId: id,
-      }));
+        const [currentWarehouse] = await Warehouse.findOrCreate({
+          where: { warehouseName: warehouse.warehouseName, createdAt: `${formattedDate} 00:00:00+00` },
+          defaults: { ...warehouse, createdAt: formattedDate },
+          transaction,
+        });
 
-      await Tariff.bulkCreate(tariffData, { transaction: t });
+        await Tariff.upsert(
+          { warehouseId: currentWarehouse.id, dtNextBox, dtTillMax, createdAt: formattedDate },
+          { transaction }
+        );
+      }
     });
-
     console.log("Данные успешно обновлены");
   } catch (error) {
     console.error("Ошибка при получении данных Wildberries:", error.message);

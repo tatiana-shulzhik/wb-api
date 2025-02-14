@@ -2,6 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const { sequelize } = require('./config/config');
 const { getWBDataByHour } = require('../src/services/wb-data-service');
+require('./cron-jobs/dataUpdater');
 
 getWBDataByHour();
 dotenv.config();
