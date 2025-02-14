@@ -3,6 +3,13 @@ const { sequelize } = require("../config/config");
 const Tariff = require("../entities/tariff.entity")(sequelize);
 const Warehouse = require("../entities/warehouse.entity")(sequelize);
 
+/**
+ * Функция для загрузки данных в Google Sheets.
+ * Загружает тарифы и связанные данные о складах в указанные таблицы Google Sheets.
+ * 
+ * @param {Array<string>} spreadsheetIds Массив идентификаторов таблиц Google Sheets, в которые нужно загрузить данные.
+ * @throws {Error} Если передано меньше 3 таблиц для загрузки данных.
+ */
 async function uploadDataToGoogleSheets(spreadsheetIds) {
   try {
     if (spreadsheetIds.length < 3) {
@@ -45,22 +52,22 @@ async function uploadDataToGoogleSheets(spreadsheetIds) {
         const { data: { sheets } } = await service.spreadsheets.get({ spreadsheetId });
         const sheetNames = sheets.map(sheet => sheet.properties.title);
 
-          if (!sheetNames.includes(sheetTitle)) {
-            await service.spreadsheets.batchUpdate({
-              spreadsheetId,
-              requestBody: { requests: [{ addSheet: { properties: { title: sheetTitle } } }] },
-            });
-            console.log(`Лист "${sheetTitle}" создан в таблице: ${spreadsheetId}`);
-          }
-
-          await service.spreadsheets.values.update({
+        if (!sheetNames.includes(sheetTitle)) {
+          await service.spreadsheets.batchUpdate({
             spreadsheetId,
-            range,
-            valueInputOption: "RAW",
-            requestBody: { values: [header, ...rows] },
+            requestBody: { requests: [{ addSheet: { properties: { title: sheetTitle } } }] },
           });
+          console.log(`Лист "${sheetTitle}" создан в таблице: ${spreadsheetId}`);
+        }
 
-          console.log(`Данные загружены в таблицу: ${spreadsheetId}`);
+        await service.spreadsheets.values.update({
+          spreadsheetId,
+          range,
+          valueInputOption: "RAW",
+          requestBody: { values: [header, ...rows] },
+        });
+
+        console.log(`Данные загружены в таблицу: ${spreadsheetId}`);
       } catch (error) {
         console.error(`Ошибка при обновлении таблицы ${spreadsheetId}:`, error.message);
       }

@@ -5,6 +5,15 @@ const Warehouse = require("../entities/warehouse.entity")(sequelize);
 const Tariff = require("../entities/tariff.entity")(sequelize);
 const { uploadDataToGoogleSheets } = require("./google-sheets-upload");
 
+/**
+ * Получение данных по тарифам с API Wildberries и обновление базы данных.
+ * Загружает информацию о складах и тарифах в базу данных, а затем выгружает данные в Google Sheets.
+ * 
+ * @async
+ * @throws {Error} Если возникает ошибка при получении токена или данных из API Wildberries, или если ответ от API некорректен.
+ * @throws {Error} Если API Wildberries возвращает пустой или некорректный список складов.
+ * @returns {Promise<void>} Возвращает промис, который завершится, когда данные будут успешно обновлены и выгружены в Google Sheets.
+ */
 async function getWBDataByHour() {
   try {
     const token = process.env.WB_API_TOKEN;
