@@ -5,6 +5,10 @@ const Warehouse = require("../entities/warehouse.entity")(sequelize);
 
 async function uploadDataToGoogleSheets(spreadsheetIds) {
   try {
+    if (spreadsheetIds.length < 3) {
+      throw new Error("Необходимо передать минимум 3 таблицы.");
+    }
+
     const data = await Tariff.findAll({
       include: { model: Warehouse, as: "warehouse" },
       raw: true,
@@ -41,22 +45,22 @@ async function uploadDataToGoogleSheets(spreadsheetIds) {
         const { data: { sheets } } = await service.spreadsheets.get({ spreadsheetId });
         const sheetNames = sheets.map(sheet => sheet.properties.title);
 
-        if (!sheetNames.includes(sheetTitle)) {
-          await service.spreadsheets.batchUpdate({
+          if (!sheetNames.includes(sheetTitle)) {
+            await service.spreadsheets.batchUpdate({
+              spreadsheetId,
+              requestBody: { requests: [{ addSheet: { properties: { title: sheetTitle } } }] },
+            });
+            console.log(`Лист "${sheetTitle}" создан в таблице: ${spreadsheetId}`);
+          }
+
+          await service.spreadsheets.values.update({
             spreadsheetId,
-            requestBody: { requests: [{ addSheet: { properties: { title: sheetTitle } } }] },
+            range,
+            valueInputOption: "RAW",
+            requestBody: { values: [header, ...rows] },
           });
-          console.log(`Лист "${sheetTitle}" создан в таблице: ${spreadsheetId}`);
-        }
 
-        await service.spreadsheets.values.update({
-          spreadsheetId,
-          range,
-          valueInputOption: "RAW",
-          requestBody: { values: [header, ...rows] },
-        });
-
-        console.log(`Данные загружены в таблицу: ${spreadsheetId}`);
+          console.log(`Данные загружены в таблицу: ${spreadsheetId}`);
       } catch (error) {
         console.error(`Ошибка при обновлении таблицы ${spreadsheetId}:`, error.message);
       }
